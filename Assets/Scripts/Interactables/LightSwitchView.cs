@@ -6,12 +6,16 @@ public class LightSwitchView : MonoBehaviour, IInteractable
     [SerializeField] private List<Light> lightsources = new List<Light>();
     private SwitchState currentState;
 
+    public delegate void LightSwitchDelegate(); //Signature
+    public static LightSwitchDelegate lightSwitch; // instance
+
+
+    private void OnEnable() => lightSwitch += OnLightSwitchToggled; // Subscribe
+    private void OnDisable() => lightSwitch -= OnLightSwitchToggled;  //Unsubscribe
     private void Start() => currentState = SwitchState.Off;
 
-    public void Interact()
-    {
-        //Todo - Implement Interaction
-    }
+    public void Interact() => lightSwitch?.Invoke();
+
     private void toggleLights()
     {
         bool lights = false;
@@ -33,5 +37,12 @@ public class LightSwitchView : MonoBehaviour, IInteractable
         {
             lightSource.enabled = lights;
         }
+    }
+
+    private void OnLightSwitchToggled()
+    {
+        toggleLights();
+        GameService.Instance.GetInstructionView().HideInstruction();
+        GameService.Instance.GetSoundView().PlaySoundEffects(SoundType.SwitchSound);
     }
 }
